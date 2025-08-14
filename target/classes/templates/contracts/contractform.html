@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${contract.id != null ? 'Chỉnh sửa Hợp đồng' : 'Thêm Hợp đồng mới'}">Thêm Hợp đồng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: #f8f9fa;
+            transition: 0.3s;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar.hidden {
+            left: -250px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px 25px;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background-color: #e9ecef;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        .content.full-width {
+            margin-left: 0;
+        }
+
+        .toggle-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="sidebar" id="sidebar">
+    <h5 class="text-center mb-3">Menu</h5>
+    <a href="/home"><i class="fas fa-home"></i> Trang chủ</a>
+    <a href="/home/projects"><i class="fas fa-briefcase"></i> Dự án</a>
+    <a href="/home/staff"><i class="fas fa-users"></i> Nhân sự</a>
+    <a href="/home/contracts"><i class="fas fa-file-contract"></i> Hợp đồng</a>
+    <a href="/home/reports"><i class="fas fa-chart-line"></i> Báo cáo</a>
+    <a href="/logout" class="text-danger"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+</div>
+
+<div class="content" id="mainContent">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <i class="fas fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+            <strong class="ms-2" th:text="${contract.id != null ? 'Chỉnh sửa Hợp đồng' : 'Thêm Hợp đồng mới'}">Thêm Hợp đồng</strong><br>
+            <small>Điền thông tin hợp đồng bên dưới</small>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-container">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <h2>
+                        <i class="fas fa-file-contract text-primary"></i>
+                        <span th:text="${contract.id != null ? 'Chỉnh sửa Hợp đồng' : 'Thêm Hợp đồng mới'}">Thêm Hợp đồng</span>
+                    </h2>
+                    <p class="text-muted">Điền thông tin hợp đồng bên dưới</p>
+                </div>
+
+                <!-- Form -->
+                <form th:action="${contract.id != null ? '/home/contracts/update/' + contract.id : '/home/contracts'}" 
+                      th:object="${contract}" method="post">
+                    <input type="hidden" th:field="*{id}" />
+                    <input type="hidden" th:field="*{adminId}" />
+                    <input type="hidden" th:field="*{createAt}" />
+                    <input type="hidden" th:field="*{updateAt}" />
+
+                    <div class="row">
+                        <!-- Tên hợp đồng -->
+                        <div class="col-md-6 mb-3">
+                            <label for="contractName" class="form-label">
+                                <i class="fas fa-file-signature"></i> Tên hợp đồng *
+                            </label>
+                            <input type="text" th:field="*{contractName}" class="form-control" 
+                                   id="contractName" placeholder="Nhập tên hợp đồng" required>
+                            <div th:if="${#fields.hasErrors('contractName')}" class="text-danger small">
+                                <span th:errors="*{contractName}"></span>
+                            </div>
+                        </div>
+
+                        <!-- Tên công ty -->
+                        <div class="col-md-6 mb-3">
+                            <label for="companyName" class="form-label">
+                                <i class="fas fa-building"></i> Tên công ty *
+                            </label>
+                            <input type="text" th:field="*{companyName}" class="form-control" 
+                                   id="companyName" placeholder="Nhập tên công ty" required>
+                            <div th:if="${#fields.hasErrors('companyName')}" class="text-danger small">
+                                <span th:errors="*{companyName}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="fas fa-align-left"></i> Mô tả
+                        </label>
+                        <textarea th:field="*{description}" class="form-control" id="description" 
+                                  rows="3" placeholder="Mô tả chi tiết về hợp đồng"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <!-- Giá trị -->
+                        <div class="col-md-4 mb-3">
+                            <label for="value" class="form-label">
+                                <i class="fas fa-money-bill-wave"></i> Giá trị *
+                            </label>
+                            <input type="number" th:field="*{value}" class="form-control" 
+                                   id="value" placeholder="Nhập giá trị" step="0.01" required>
+                            <div th:if="${#fields.hasErrors('value')}" class="text-danger small">
+                                <span th:errors="*{value}"></span>
+                            </div>
+                        </div>
+
+                        <!-- Đơn vị tiền tệ -->
+                        <div class="col-md-4 mb-3">
+                            <label for="currency" class="form-label">
+                                <i class="fas fa-coins"></i> Đơn vị tiền tệ
+                            </label>
+                            <select th:field="*{currency}" class="form-select" id="currency">
+                                <option value="VNĐ">VNĐ</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="JPY">JPY</option>
+                            </select>
+                        </div>
+
+                        <!-- Thời hạn -->
+                        <div class="col-md-4 mb-3">
+                            <label for="term" class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Thời hạn (tháng)
+                            </label>
+                            <input type="number" th:field="*{term}" class="form-control" 
+                                   id="term" placeholder="Số tháng" min="1">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Ngày ký -->
+                        <div class="col-md-6 mb-3">
+                            <label for="signedDate" class="form-label">
+                                <i class="fas fa-calendar-check"></i> Ngày ký
+                            </label>
+                            <input type="datetime-local" th:field="*{signedDate}" class="form-control" 
+                                   id="signedDate">
+                        </div>
+
+                        <!-- Ngày hết hạn -->
+                        <div class="col-md-6 mb-3">
+                            <label for="expriryDate" class="form-label">
+                                <i class="fas fa-calendar-times"></i> Ngày hết hạn
+                            </label>
+                            <input type="datetime-local" th:field="*{expriryDate}" class="form-control" 
+                                   id="expriryDate">
+                        </div>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div class="mb-4">
+                        <label for="status" class="form-label">
+                            <i class="fas fa-info-circle"></i> Trạng thái
+                        </label>
+                        <select th:field="*{status}" class="form-select" id="status">
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="Chờ duyệt">Chờ duyệt</option>
+                            <option value="Đang thực hiện">Đang thực hiện</option>
+                            <option value="Hoàn thành">Hoàn thành</option>
+                            <option value="Tạm dừng">Tạm dừng</option>
+                            <option value="Hủy bỏ">Hủy bỏ</option>
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a th:href="@{/home/contracts}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-save"></i>
+                            <span th:text="${contract.id != null ? 'Cập nhật' : 'Lưu'}">Lưu</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('mainContent');
+            if (sidebar && content) {
+                sidebar.classList.toggle('hidden');
+                content.classList.toggle('full-width');
+            }
+        }
+    </script>
+</body>
+</html> 

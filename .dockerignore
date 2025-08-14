@@ -1,0 +1,10 @@
+target/
+!target/*.jar
+!target/classes/
+!target/dependency/
+.git
+.gitignore
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore 

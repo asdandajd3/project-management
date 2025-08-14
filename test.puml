@@ -1,0 +1,41 @@
+@startuml
+entity User {
+    +Long id
+    +String username
+    +String password
+    +String role
+}
+
+entity Staff {
+    +Long id
+    +String fullName
+    +String email
+    +String position
+    +Double salary
+    +String status
+    +String avatar
+    +Date startDate
+    +Long adminId
+}
+
+entity Project {
+    +Long id
+    +String name
+    +String description
+    +Date startDate
+    +Date endDate
+}
+
+entity Contract {
+    +Long id
+    +String name
+    +String description
+    +Double value
+    +Date signDate
+}
+
+' Quan hệ thực tế
+User ||--o| Staff : "1-1 hoặc 1-0..1"
+Staff }o--o{ Project : "N-N"
+Staff ||--o{ Contract : "1-N"
+@enduml

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${contract.id != null ? 'Chỉnh sửa Hợp đồng' : 'Thêm Hợp đồng mới'}">Thêm Hợp đồng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar.hidden {
+            left: -280px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0 25px 25px 0;
+            margin: 5px 0;
+            font-weight: 500;
+        }
+        
+        .sidebar a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sidebar a i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #e1e5e9;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h4 {
+            color: #667eea;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .sidebar-header p {
+            color: #666;
+            font-size: 12px;
+            margin: 5px 0 0 0;
+        }
+        
+        .content {
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s;
+            min-height: 100vh;
+        }
+        
+        .content.full-width {
+            margin-left: 0;
+        }
+        
+        .toggle-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .header-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-section {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+        
+        .currency-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .currency-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #e9ecef;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .currency-btn:hover {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .status-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .status-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #e9ecef;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .status-btn:hover {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .btn-custom {
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+            color: white;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+        
+        .value-preview {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .sidebar {
+                left: -280px;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h4><i class="fas fa-project-diagram"></i> Project Manager</h4>
+        <p>Hệ thống quản lý dự án</p>
+    </div>
+    <a href="/home"><i class="fas fa-home"></i> Trang chủ</a>
+    <a href="/home/projects"><i class="fas fa-briefcase"></i> Dự án</a>
+    <a href="/home/staff"><i class="fas fa-users"></i> Nhân sự</a>
+    <a href="/home/contracts"><i class="fas fa-file-contract"></i> Hợp đồng</a>
+    <a href="/logout" style="color: var(--danger-color);"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+</div>
+
+<div class="content" id="mainContent">
+    <div class="header-section">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bars toggle-btn me-3" onclick="toggleSidebar()"></i>
+                <div>
+                    <h3 class="mb-1" style="color: var(--primary-color); font-weight: 700;">
+                        <i class="fas fa-file-contract me-2"></i>
+                        <span th:text="${contract.id != null ? 'Chỉnh sửa Hợp đồng' : 'Thêm Hợp đồng mới'}">Thêm Hợp đồng</span>
+                    </h3>
+                    <p class="mb-0 text-muted">Điền thông tin chi tiết về hợp đồng</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form th:action="${contract.id != null ? '/home/contracts/update/' + contract.id : '/home/contracts'}" 
+              th:object="${contract}" method="post">
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{adminId}" />
+            <input type="hidden" th:field="*{createAt}" />
+            <input type="hidden" th:field="*{updateAt}" />
+
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-file-signature"></i>Thông tin cơ bản
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Tên hợp đồng</label>
+                        <input type="text" th:field="*{contractName}" class="form-control" 
+                               placeholder="Nhập tên hợp đồng" required>
+                        <div th:if="${#fields.hasErrors('contractName')}" class="text-danger small mt-1">
+                            <span th:errors="*{contractName}"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Tên công ty</label>
+                        <input type="text" th:field="*{companyName}" class="form-control" 
+                               placeholder="Nhập tên công ty" required>
+                        <div th:if="${#fields.hasErrors('companyName')}" class="text-danger small mt-1">
+                            <span th:errors="*{companyName}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Mô tả</label>
+                    <textarea th:field="*{description}" class="form-control" 
+                              rows="3" placeholder="Mô tả chi tiết về hợp đồng"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-money-bill-wave"></i>Thông tin tài chính
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label required-field">Giá trị</label>
+                        <input type="number" th:field="*{value}" class="form-control" 
+                               placeholder="Nhập giá trị" step="0.01" required onchange="updateValuePreview()">
+                        <div th:if="${#fields.hasErrors('value')}" class="text-danger small mt-1">
+                            <span th:errors="*{value}"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Đơn vị tiền tệ</label>
+                        <div class="currency-suggestions">
+                            <button type="button" class="currency-btn" onclick="setCurrency('VNĐ')">VNĐ</button>
+                            <button type="button" class="currency-btn" onclick="setCurrency('USD')">USD</button>
+                            <button type="button" class="currency-btn" onclick="setCurrency('EUR')">EUR</button>
+                            <button type="button" class="currency-btn" onclick="setCurrency('JPY')">JPY</button>
+                        </div>
+                        <select th:field="*{currency}" class="form-select" id="currencyInput">
+                            <option value="VNĐ">VNĐ</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="JPY">JPY</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Thời hạn (tháng)</label>
+                        <input type="number" th:field="*{term}" class="form-control" 
+                               placeholder="Số tháng" min="1">
+                    </div>
+                </div>
+                
+                <div class="value-preview" id="valuePreview" style="display: none;">
+                    <i class="fas fa-coins me-2"></i>
+                    <span id="previewText">0 VNĐ</span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-calendar-alt"></i>Thông tin thời gian
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày ký</label>
+                        <input type="datetime-local" th:field="*{signedDate}" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày hết hạn</label>
+                        <input type="datetime-local" th:field="*{expriryDate}" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i>Trạng thái hợp đồng
+                </div>
+                
+                <div class="status-suggestions">
+                    <button type="button" class="status-btn" onclick="setStatus('Chờ duyệt')">Chờ duyệt</button>
+                    <button type="button" class="status-btn" onclick="setStatus('Đang thực hiện')">Đang thực hiện</button>
+                    <button type="button" class="status-btn" onclick="setStatus('Hoàn thành')">Hoàn thành</button>
+                    <button type="button" class="status-btn" onclick="setStatus('Tạm dừng')">Tạm dừng</button>
+                    <button type="button" class="status-btn" onclick="setStatus('Hủy bỏ')">Hủy bỏ</button>
+                </div>
+                
+                <select th:field="*{status}" class="form-select" id="statusInput">
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option value="Chờ duyệt">Chờ duyệt</option>
+                    <option value="Đang thực hiện">Đang thực hiện</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                    <option value="Tạm dừng">Tạm dừng</option>
+                    <option value="Hủy bỏ">Hủy bỏ</option>
+                </select>
+            </div>
+
+            <div class="action-buttons">
+                <a th:href="@{/home/contracts}" class="btn-custom btn-back">
+                    <i class="fas fa-arrow-left"></i>Quay lại
+                </a>
+                <button type="submit" class="btn-custom btn-save">
+                    <i class="fas fa-save"></i>
+                    <span th:text="${contract.id != null ? 'Cập nhật' : 'Lưu'}">Lưu</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('mainContent');
+        if (sidebar && content) {
+            sidebar.classList.toggle('hidden');
+            content.classList.toggle('full-width');
+        }
+    }
+    
+    function setCurrency(currency) {
+        document.getElementById('currencyInput').value = currency;
+        updateValuePreview();
+    }
+    
+    function setStatus(status) {
+        document.getElementById('statusInput').value = status;
+    }
+    
+    function updateValuePreview() {
+        const value = document.querySelector('input[name="value"]').value;
+        const currency = document.getElementById('currencyInput').value;
+        const preview = document.getElementById('valuePreview');
+        const previewText = document.getElementById('previewText');
+        
+        if (value && value > 0) {
+            previewText.textContent = new Intl.NumberFormat('vi-VN').format(value) + ' ' + currency;
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    
+    // Cập nhật preview khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateValuePreview();
+    });
+</script>
+
+</body>
+</html> 

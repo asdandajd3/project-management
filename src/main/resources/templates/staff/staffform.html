@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${staff != null and staff.id != null} ? 'Chỉnh sửa Nhân sự' : 'Thêm Nhân sự'">Thêm Nhân sự</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar.hidden {
+            left: -280px;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 25px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0 25px 25px 0;
+            margin: 5px 0;
+        }
+        
+        .sidebar a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sidebar a i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #e1e5e9;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h4 {
+            color: #667eea;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .sidebar-header p {
+            color: #666;
+            font-size: 12px;
+            margin: 5px 0 0 0;
+        }
+        
+        .content {
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s;
+            min-height: 100vh;
+        }
+        
+        .content.full-width {
+            margin-left: 0;
+        }
+        
+        .toggle-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .header-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-section {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+        
+        .position-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .position-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #e9ecef;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .position-btn:hover {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .avatar-section {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .permission-card {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .permission-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .permission-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-check {
+            margin-bottom: 12px;
+        }
+        
+        .form-check-input {
+            width: 1.2em;
+            height: 1.2em;
+            margin-top: 0.25em;
+            border-radius: 0.25em;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            color: #555;
+            margin-left: 8px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .btn-custom {
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+            color: white;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .sidebar {
+                left: -280px;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .permissions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h4><i class="fas fa-project-diagram"></i> Project Manager</h4>
+        <p>Hệ thống quản lý dự án</p>
+    </div>
+    <a href="/home"><i class="fas fa-home"></i> Trang chủ</a>
+    <a href="/home/projects"><i class="fas fa-briefcase"></i> Dự án</a>
+    <a href="/home/staff"><i class="fas fa-users"></i> Nhân sự</a>
+    <a href="/home/contracts"><i class="fas fa-file-contract"></i> Hợp đồng</a>
+    <a href="/logout" style="color: var(--danger-color);"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+</div>
+
+<div class="content" id="mainContent">
+    <div class="header-section">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bars toggle-btn me-3" onclick="toggleSidebar()"></i>
+                <div>
+                    <h3 class="mb-1" style="color: var(--primary-color); font-weight: 700;">
+                        <i class="fas fa-user-plus me-2"></i>
+                        <span th:text="${staff != null and staff.id != null} ? 'Chỉnh sửa Nhân sự' : 'Thêm Nhân sự mới'">Thêm Nhân sự</span>
+                    </h3>
+                    <p class="mb-0 text-muted">Điền thông tin chi tiết về nhân sự</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/home/staff/save}" th:object="${staff}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="form-container">
+            <div class="row">
+                <!-- Thông tin nhân sự bên trái -->
+                <div class="col-lg-9">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-user-circle"></i>Thông tin cá nhân
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label required-field">Họ và tên</label>
+                                <input type="text" class="form-control" th:field="*{fullName}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required-field">Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Chức vụ</label>
+                                <select class="form-select" th:field="*{position}">
+                                    <option value="">Chọn chức vụ</option>
+                                    <option value="Quản lý">Quản lý</option>
+                                    <option value="Nhân viên">Nhân viên</option>
+                                    <option value="Thực tập">Thực tập</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required-field">Lương</label>
+                                <input type="number" class="form-control" th:field="*{salary}" required min="0">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày bắt đầu làm việc</label>
+                                <input type="date" class="form-control" th:field="*{startDate}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Trạng thái</label>
+                                <select class="form-select" th:field="*{status}">
+                                    <option value="">Chọn trạng thái</option>
+                                    <option value="Hoạt động">Hoạt động</option>
+                                    <option value="Nghỉ phép">Nghỉ phép</option>
+                                    <option value="Thực tập">Thực tập</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-briefcase"></i>Vị trí công việc
+                        </div>
+                        
+                        <label class="form-label">Gợi ý vị trí</label>
+                        <div class="position-suggestions">
+                            <button type="button" class="position-btn" onclick="setPosition('Software Engineer')">Software Engineer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Frontend Developer')">Frontend Developer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Backend Developer')">Backend Developer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Full Stack Developer')">Full Stack Developer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('DevOps Engineer')">DevOps Engineer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Security Engineer')">Security Engineer</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Data Scientist')">Data Scientist</button>
+                            <button type="button" class="position-btn" onclick="setPosition('Product Manager')">Product Manager</button>
+                        </div>
+                        
+                        <input type="text" class="form-control" th:field="*{position}" id="positionInput" placeholder="Nhập vị trí nếu không có trong danh sách">
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-shield-alt"></i>Quyền truy cập
+                        </div>
+                        
+                        <div class="permissions-grid">
+                            <div class="permission-card">
+                                <div class="permission-title text-primary">
+                                    <i class="fas fa-briefcase"></i>Quyền dự án
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canViewProject}" id="canViewProject">
+                                    <label class="form-check-label">Xem dự án</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canEditProject}" id="canEditProject" onchange="handleEditProjectChange()">
+                                    <label class="form-check-label">Chỉnh sửa dự án</label>
+                                </div>
+                            </div>
+                            
+                            <div class="permission-card">
+                                <div class="permission-title text-success">
+                                    <i class="fas fa-file-contract"></i>Quyền hợp đồng
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canViewContract}" id="canViewContract">
+                                    <label class="form-check-label">Xem hợp đồng</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canEditContract}" id="canEditContract" onchange="handleEditContractChange()">
+                                    <label class="form-check-label">Chỉnh sửa hợp đồng</label>
+                                </div>
+                            </div>
+                            
+                            <div class="permission-card">
+                                <div class="permission-title text-warning">
+                                    <i class="fas fa-users"></i>Quyền nhân sự
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canViewStaff}" id="canViewStaff">
+                                    <label class="form-check-label">Xem nhân sự</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" th:field="*{canEditStaff}" id="canEditStaff" onchange="handleEditStaffChange()">
+                                    <label class="form-check-label">Chỉnh sửa nhân sự</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload avatar bên phải -->
+                <div class="col-lg-3">
+                    <div class="avatar-section">
+                        <img th:src="${staff != null and staff.avatar != null and staff.avatar != ''} ? '/uploads/avatar/' + ${staff.avatar} : '/img/default-avatar.svg'" 
+                             alt="Avatar" class="avatar-preview" id="avatarPreview">
+                        
+                        <div class="file-input-wrapper">
+                            <input type="file" name="avatarFile" accept="image/*" onchange="previewImage(this)" id="avatarFile">
+                            <label for="avatarFile" class="file-input-label">
+                                <i class="fas fa-camera"></i>Chọn ảnh
+                            </label>
+                        </div>
+                        
+                        <p class="text-muted mt-3" style="font-size: 0.9rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Hỗ trợ: JPG, PNG, GIF (Tối đa 5MB)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a th:href="@{/home/staff}" class="btn-custom btn-back">
+                    <i class="fas fa-arrow-left"></i>Quay lại
+                </a>
+                <button type="submit" class="btn-custom btn-save">
+                    <i class="fas fa-save"></i>
+                    <span th:text="${staff != null and staff.id != null} ? 'Cập nhật' : 'Lưu'">Lưu</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function setPosition(position) {
+        document.getElementById('positionInput').value = position;
+    }
+    
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('mainContent');
+        if (sidebar && content) {
+            sidebar.classList.toggle('hidden');
+            content.classList.toggle('full-width');
+        }
+    }
+    
+    function handleEditProjectChange() {
+        const canEditProject = document.getElementById('canEditProject');
+        const canViewProject = document.getElementById('canViewProject');
+        
+        if (canEditProject.checked) {
+            canViewProject.checked = true;
+        }
+    }
+    
+    function handleEditContractChange() {
+        const canEditContract = document.getElementById('canEditContract');
+        const canViewContract = document.getElementById('canViewContract');
+        
+        if (canEditContract.checked) {
+            canViewContract.checked = true;
+        }
+    }
+    
+    function handleEditStaffChange() {
+        const canEditStaff = document.getElementById('canEditStaff');
+        const canViewStaff = document.getElementById('canViewStaff');
+        
+        if (canEditStaff.checked) {
+            canViewStaff.checked = true;
+        }
+    }
+</script>
+
+</body>
+</html>

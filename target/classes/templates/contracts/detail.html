@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Hợp đồng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: #f8f9fa;
+            transition: 0.3s;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar.hidden {
+            left: -250px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px 25px;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background-color: #e9ecef;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        .content.full-width {
+            margin-left: 0;
+        }
+
+        .toggle-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .card-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .status-pending { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #856404; }
+        .status-active { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #0c5460; }
+        .status-completed { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); color: #155724; }
+        .info-item {
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
+        }
+        .btn-edit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+        }
+        .btn-delete {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+        }
+        .value-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="sidebar" id="sidebar">
+    <h5 class="text-center mb-3">Menu</h5>
+    <a href="/home"><i class="fas fa-home"></i> Trang chủ</a>
+    <a href="/home/projects"><i class="fas fa-briefcase"></i> Dự án</a>
+    <a href="/home/staff"><i class="fas fa-users"></i> Nhân sự</a>
+    <a href="/home/contracts"><i class="fas fa-file-contract"></i> Hợp đồng</a>
+    <a href="/home/reports"><i class="fas fa-chart-line"></i> Báo cáo</a>
+    <a href="/logout" class="text-danger"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+</div>
+
+<div class="content" id="mainContent">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <i class="fas fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+            <strong class="ms-2">Chi tiết Hợp đồng</strong><br>
+            <small>Thông tin chi tiết về hợp đồng</small>
+        </div>
+    </div>
+
+    <a href="/home/contracts" class="text-decoration-none mb-3 d-block">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+
+    <!-- Header -->
+    <div class="card-box text-center">
+        <h3 th:text="${contract.contractName}">Tên hợp đồng</h3>
+        <p class="text-muted" th:text="${contract.companyName}">Công ty</p>
+        <span class="status-badge" 
+              th:classappend="${contract.status == 'Chờ duyệt' ? 'status-pending' : 
+                              contract.status == 'Đang thực hiện' ? 'status-active' : 
+                              'status-completed'}"
+              th:text="${contract.status}">Trạng thái</span>
+    </div>
+
+    <!-- Thông tin cơ bản -->
+    <div class="card-box">
+        <h5><i class="fas fa-info-circle text-primary"></i> Thông tin cơ bản</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Tên hợp đồng:</span>
+                    <span th:text="${contract.contractName}">Tên hợp đồng</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Công ty:</span>
+                    <span th:text="${contract.companyName}">Công ty</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Mô tả:</span>
+                    <span th:text="${contract.description != null ? contract.description : 'Không có mô tả'}">Mô tả</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Giá trị:</span>
+                    <span class="value-display">
+                        <span th:text="${#numbers.formatDecimal(contract.value, 0, 'COMMA', 0, 'POINT')}">0</span>
+                        <span th:text="${contract.currency}">VNĐ</span>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Thời hạn:</span>
+                    <span th:text="${contract.term != null ? contract.term + ' tháng' : 'Không xác định'}">Thời hạn</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Trạng thái:</span>
+                    <span th:text="${contract.status}">Trạng thái</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin thời gian -->
+    <div class="card-box">
+        <h5><i class="fas fa-calendar-alt text-primary"></i> Thông tin thời gian</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Ngày ký:</span>
+                    <span th:text="${contract.signedDate != null ? #temporals.format(contract.signedDate, 'dd/MM/yyyy HH:mm') : 'Chưa ký'}">Ngày ký</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ngày hết hạn:</span>
+                    <span th:text="${contract.expriryDate != null ? #temporals.format(contract.expriryDate, 'dd/MM/yyyy HH:mm') : 'Không xác định'}">Ngày hết hạn</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Ngày tạo:</span>
+                    <span th:text="${contract.createAt != null ? #temporals.format(contract.createAt, 'dd/MM/yyyy HH:mm') : 'Không xác định'}">Ngày tạo</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cập nhật lần cuối:</span>
+                    <span th:text="${contract.updateAt != null ? #temporals.format(contract.updateAt, 'dd/MM/yyyy HH:mm') : 'Không xác định'}">Cập nhật</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between mt-4">
+        <a th:href="@{'/home/contracts/edit/' + ${contract.id}}" class="btn btn-edit w-50 me-2">
+            <i class="fas fa-edit"></i> Chỉnh sửa
+        </a>
+        <a th:href="@{'/home/contracts/delete/' + ${contract.id}}" class="btn btn-delete w-50"
+           onclick="return confirm('Bạn có chắc chắn muốn xoá hợp đồng này?')">
+            <i class="fas fa-trash"></i> Xoá hợp đồng
+        </a>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('mainContent');
+            if (sidebar && content) {
+                sidebar.classList.toggle('hidden');
+                content.classList.toggle('full-width');
+            }
+        }
+    </script>
+</body>
+</html> 
